@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1478396484 source:c:\users\jakep\documents\github\pelter_combined_work\blinddead\main.cpp
+	<iostream>
+	<fstream>
+	<cstdlib>
+	<ctime>
+	<cctype>
+	<string>
+	<limits>
+
