@@ -71,6 +71,19 @@ bool validateInput(int, int, int, string);
 
 //PART 2 prototypes
 
+bool checkZombie(int roomArray[][7], int);
+
+bool checkGrail(int roomArray[][7], int);
+
+bool checkNearZombie(int roomArray[][7], int);
+
+bool checkNearGrail(int roomArray[][7], int);
+
+int winOrLose(int roomArray[][7], int&, bool);
+
+void showConnectedRooms(int roomArray[][7]);
+
+bool isConnected(int roomArray[][7], int);
 //PART 3 prototypes
 
 int main()
@@ -254,4 +267,72 @@ void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bo
 
     gameArray[0] = currentRoom;
     gameArray[2] = numBullets;
+
+}
+
+bool checkZombie(int roomArray[][7], int x)
+{
+    return (roomArray[x][5] == 1);
+}
+
+bool checkGrail(int roomArray[][7], int x)
+{
+    return (roomArray[x][6] == 1);
+}
+
+bool checkNearZombie(int roomArray[][7], int x)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        if(checkZombie(roomArray, roomArray[x][i] - 1))
+            return true;
+    }
+    return false;
+}
+
+bool checkNearGrail(int roomArray[][7], int x)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        if(checkGrail(roomArray, roomArray[x][i] - 1))
+            return true;
+    }
+    return false;
+}
+
+int winOrLose(int roomArray[][7], int &currentRoom, bool haveGrail)
+{
+    currentRoom = -1;
+    int room = 0;
+    while(roomArray[room][4] != 1)
+        room++;
+    if (room == 0 && haveGrail)
+        return 0;
+    if (roomArray[room][5] == 1)
+        return 1;
+}
+
+void showConnectedRooms(int roomArray[][7])
+{
+    int room = 0;
+    while(roomArray[room][4] != 1)
+        room++;
+    cout << "Connected rooms: ";
+    for(int i = 0; i < 4; i++)
+        if (roomArray[room][i] > 0)
+            cout << roomArray[room][i] << " ";
+    cout << endl;
+}
+
+bool isConnected(int roomArray[][7], int x)
+{
+    int room = 0;
+    while(roomArray[room][4] != 1)
+        room++;
+    for (int i = 0; i < 4; i++)
+    {
+        if(roomArray[room][i] = x)
+            return true;
+    }
+    return false;
 }
