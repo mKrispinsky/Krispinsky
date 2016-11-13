@@ -132,25 +132,25 @@ void printMemory(int gameArray[],int roomArray[][7])
 {
     cout << "Game Array:\n\t[current][bullets][  rooms]" << endl;
     cout << "\t[";
-    if (gameArray[0] > 9)
+    if (gameArray[CURRENT_ROOM_INDEX] > 9)
         cout << "     ";
     else
         cout << "      ";
-    cout << gameArray[0] << "][";
-    if (gameArray[2] > 9)
+    cout << gameArray[CURRENT_ROOM_INDEX] << "][";
+    if (gameArray[NUM_BULLETS_INDEX] > 9)
         cout << "     ";
     else
         cout << "      ";
-    cout << gameArray[2] << "][";
-    if (gameArray[3] > 9)
+    cout << gameArray[NUM_BULLETS_INDEX] << "][";
+    if (gameArray[NUM_ROOMS_INDEX] > 9)
         cout << "     ";
     else
         cout << "      ";
-    cout << gameArray[3] << "]";
+    cout << gameArray[NUM_ROOMS_INDEX] << "]";
 
     cout << "\n\nRoom Array:\n" << "           [ north][ south]"
     << "[  west][  east][player][zombie][ grail]" << endl;
-    for (int i = 0; i < gameArray[3]; i++)
+    for (int i = 0; i < gameArray[NUM_ROOMS_INDEX]; i++)
     {
         cout << "   [R";
         if (i + 1 < 10)
@@ -217,8 +217,8 @@ bool validateInput(int userChoice, int range1, int range2, string message)
 void readMaze(int roomArray[][7], int gameArray[5], ifstream &iFile)
 {
     iFile.open("easyMaze.txt");
-    iFile >> gameArray[3];
-    for(int i = 0; i < gameArray[3]; i++)
+    iFile >> gameArray[NUM_ROOMS_INDEX];
+    for(int i = 0; i < gameArray[NUM_ROOMS_INDEX]; i++)
     {
         for(int j = 0; j < 4; j++)
         {
@@ -232,27 +232,27 @@ void readMaze(int roomArray[][7], int gameArray[5], ifstream &iFile)
 
 int getRandomRoom(int gameArray[5])
 {
-    return rand() % gameArray[3];
+    return rand() % gameArray[NUM_ROOMS_INDEX];
 }
 
 void placeZombie(int roomArray[][7], int gameArray[5])
 {
     int x = getRandomRoom(gameArray);
-    while (x < (gameArray[3] / 2))
+    while (x < (gameArray[NUM_ROOMS_INDEX] / 2))
     {
         x = getRandomRoom(gameArray);
     }
-    roomArray[x][5] = 1;
+    roomArray[x][ZOMBIE_INDEX] = 1;
 }
 
 void placeGrail(int roomArray[][7], int gameArray[5])
 {
     int x = getRandomRoom(gameArray);
-    while (x < (gameArray[3] / 2))
+    while (x < (gameArray[NUM_ROOMS_INDEX] / 2))
     {
         x = getRandomRoom(gameArray);
     }
-    roomArray[x][6] = 1;
+    roomArray[x][GRAIL_INDEX] = 1;
 }
 
 void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bool &haveGrail, int roomArray[][7], int gameArray[5], ifstream &iFile)
@@ -265,19 +265,19 @@ void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bo
     placeZombie(roomArray, gameArray);
     placeGrail(roomArray, gameArray);
 
-    gameArray[0] = currentRoom;
-    gameArray[2] = numBullets;
+    gameArray[CURRENT_ROOM_INDEX] = currentRoom;
+    gameArray[NUM_BULLETS_INDEX] = numBullets;
 
 }
 
 bool checkZombie(int roomArray[][7], int x)
 {
-    return (roomArray[x][5] == 1);
+    return (roomArray[x][ZOMBIE_INDEX] == 1);
 }
 
 bool checkGrail(int roomArray[][7], int x)
 {
-    return (roomArray[x][6] == 1);
+    return (roomArray[x][GRAIL_INDEX] == 1);
 }
 
 bool checkNearZombie(int roomArray[][7], int x)
@@ -304,18 +304,18 @@ int winOrLose(int roomArray[][7], int &currentRoom, bool haveGrail)
 {
     currentRoom = -1;
     int room = 0;
-    while(roomArray[room][4] != 1)
+    while(roomArray[room][PLAYER_INDEX] != 1)
         room++;
     if (room == 0 && haveGrail)
         return 0;
-    if (roomArray[room][5] == 1)
+    if (roomArray[room][ZOMBIE_INDEX] == 1)
         return 1;
 }
 
 void showConnectedRooms(int roomArray[][7])
 {
     int room = 0;
-    while(roomArray[room][4] != 1)
+    while(roomArray[room][PLAYER_INDEX] != 1)
         room++;
     cout << "Connected rooms: ";
     for(int i = 0; i < 4; i++)
@@ -327,7 +327,7 @@ void showConnectedRooms(int roomArray[][7])
 bool isConnected(int roomArray[][7], int x)
 {
     int room = 0;
-    while(roomArray[room][4] != 1)
+    while(roomArray[room][PLAYER_INDEX] != 1)
         room++;
     for (int i = 0; i < 4; i++)
     {
