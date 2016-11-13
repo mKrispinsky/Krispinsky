@@ -3,7 +3,8 @@
    CSI project 2 and 3 - Blind Dead
    Author.  Matthew Krispinsky
    Version. 1.01 11.14.2016.
-   Purpose: Place a description here...
+   Purpose: This code implements the start of the game Blind Dead. This is the first half,
+   project 2. The final steps of the game, the running of the game, will come later in part 3.
 */
 
 #include<iostream>
@@ -12,7 +13,7 @@
 #include<ctime>
 #include<cctype>
 #include<string>
-#include <limits>
+#include<limits>
 
 using std::cout;
 using std::cin;
@@ -66,36 +67,36 @@ void placeZombie(int roomArray[][7], int gameArray[5]);
 void placeGrail(int roomArray[][7], int gameArray[5]);
 // the setup function
 void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bool &haveGrail, int roomArray[][7], int gameArray[5], ifstream &);
-
+// validates the input to make sure nothing is entered incorrectly
 bool validateInput(int, int, int, string);
 
 //PART 2 prototypes
-
+// checks to see if the zombie is in the room specified by the parameter
 bool checkZombie(int roomArray[][7], int);
-
+// checks to see if the grail is in the room specified by the parameter
 bool checkGrail(int roomArray[][7], int);
-
+// uses checkZombie() to see if the zombie is in a room adjacent
 bool checkNearZombie(int roomArray[][7], int);
-
+// uses checkGrail() to see if the grail is in a room adjacent
 bool checkNearGrail(int roomArray[][7], int);
-
+// shows the user they have won or lost the game
 int winOrLose(int roomArray[][7], int&, bool);
-
+// show the user all rooms connected to the current one
 void showConnectedRooms(int roomArray[][7]);
-
+// tests to see if a room is connected to the current one
 bool isConnected(int roomArray[][7], int);
 //PART 3 prototypes
 
 int main()
 {
+    int roomArray[MAX_ROOMS][7] = {},
 	// these variables are passed throughout this program
-	int roomArray[MAX_ROOMS][7] = {},
-	    gameArray[5] = {},
-	    currentRoom = 0,
-       zombieRoom = 0,
-       numBullets = 0,
-       numRooms = 0,
-       menuSelection = 0;
+        gameArray[5] = {},
+        currentRoom = 0,
+        zombieRoom = 0,
+        numBullets = 0,
+        numRooms = 0,
+        menuSelection = 0;
    bool haveGrail = false;
    ifstream iFile;
 
@@ -104,21 +105,20 @@ int main()
 
    readMaze(roomArray, gameArray, iFile);
 
-   if(menu(currentRoom, zombieRoom, numBullets, numRooms, haveGrail, gameArray, roomArray, iFile))
-   {
-
-   }
-
+   menu(currentRoom, zombieRoom, numBullets, numRooms, haveGrail, gameArray, roomArray, iFile);
 
 	return 0;
 }
 // build your functions here. Don't forget your pre and post conditions
+
+//reset simply resets the primary game variables
+//takes in primary game variables by reference and sets them all to zeros and falses
 void reset(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bool &haveGrail)
 {
     currentRoom = 0, zombieRoom = 0, numBullets = 0, numRooms = 0;
     haveGrail = false;
 }
-
+//simply prints out game instructions, only taking in the input file stream
 void instructions(ifstream &iFile)
 {
     iFile.open("instructions.txt");
@@ -127,7 +127,8 @@ void instructions(ifstream &iFile)
         cout << line << endl;
     iFile.close();
 }
-
+//takes in both the game array and the room array
+//correctly formats all values and puts them in their respected "arrays"
 void printMemory(int gameArray[],int roomArray[][7])
 {
     cout << "Game Array:\n\t[current][bullets][  rooms]" << endl;
@@ -168,7 +169,8 @@ void printMemory(int gameArray[],int roomArray[][7])
 
 
 }
-
+//menu is the main function, taking in basically all game variables
+//will call necessary functions depending on the case the user chose
 bool menu(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bool &haveGrail, int gameArray[],int roomArray[][7], ifstream &iFile)
 {
     int input = 1;
@@ -200,7 +202,8 @@ bool menu(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, boo
     }
     while(input == 1);
 }
-
+//takes in the userChoice
+//makes sure the input is valid
 bool validateInput(int userChoice, int range1, int range2, string message)
 {
   bool goodOrNot = false;
@@ -213,7 +216,8 @@ bool validateInput(int userChoice, int range1, int range2, string message)
   cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   return goodOrNot;
 }
-
+//takes in roomArray, gameArray, and the input file stream
+//reads in the given maze that was put in a respected text document
 void readMaze(int roomArray[][7], int gameArray[5], ifstream &iFile)
 {
     iFile.open("easyMaze.txt");
@@ -224,17 +228,19 @@ void readMaze(int roomArray[][7], int gameArray[5], ifstream &iFile)
         {
             iFile >> roomArray[i][j];
         }
-        string boop;
+        string boop; //arbitrary name
         getline(iFile, boop);
     }
     iFile.close();
 }
-
+//simply takes in gameArray
+//returns a random room
 int getRandomRoom(int gameArray[5])
 {
     return rand() % gameArray[NUM_ROOMS_INDEX];
 }
-
+//takes in both the roomArray, gameArray
+//places zombie in randomly placed room from getRandomRoom
 void placeZombie(int roomArray[][7], int gameArray[5])
 {
     int x = getRandomRoom(gameArray);
@@ -244,7 +250,8 @@ void placeZombie(int roomArray[][7], int gameArray[5])
     }
     roomArray[x][ZOMBIE_INDEX] = 1;
 }
-
+//takes in both the roomArray, gameArray
+//places grail in randomly placed room from getRandomRoom
 void placeGrail(int roomArray[][7], int gameArray[5])
 {
     int x = getRandomRoom(gameArray);
@@ -254,7 +261,9 @@ void placeGrail(int roomArray[][7], int gameArray[5])
     }
     roomArray[x][GRAIL_INDEX] = 1;
 }
-
+//takes all necessary game variables
+//sets currentRoom to 1, haveGrail to false, numBullets to MAX_BULLETS
+//also sets the various current room index and num bullet index to their variables
 void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bool &haveGrail, int roomArray[][7], int gameArray[5], ifstream &iFile)
 {
     srand(time(NULL));
@@ -269,17 +278,20 @@ void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bo
     gameArray[NUM_BULLETS_INDEX] = numBullets;
 
 }
-
+//takes in roomArray and an arbitrary room
+//returns a bool of whether the zombie is in that room
 bool checkZombie(int roomArray[][7], int x)
 {
     return (roomArray[x][ZOMBIE_INDEX] == 1);
 }
-
+//takes in roomArray and an arbitrary room
+//returns a bool of whether the grail is in that room
 bool checkGrail(int roomArray[][7], int x)
 {
     return (roomArray[x][GRAIL_INDEX] == 1);
 }
-
+//takes in roomArray and an arbitrary room
+//returns a bool of whether the zombie is in an adjacent room to that
 bool checkNearZombie(int roomArray[][7], int x)
 {
     for(int i = 0; i < 4; i++)
@@ -289,7 +301,8 @@ bool checkNearZombie(int roomArray[][7], int x)
     }
     return false;
 }
-
+//takes in roomArray and an arbitrary room
+//returns a bool of whether the grail is in an adjacent room to that
 bool checkNearGrail(int roomArray[][7], int x)
 {
     for(int i = 0; i < 4; i++)
@@ -299,7 +312,8 @@ bool checkNearGrail(int roomArray[][7], int x)
     }
     return false;
 }
-
+//takes in roomArray, currentRoom and haveGrail
+//returns a 0 if they have won, a -1 if they have lost
 int winOrLose(int roomArray[][7], int &currentRoom, bool haveGrail)
 {
     currentRoom = -1;
@@ -311,7 +325,8 @@ int winOrLose(int roomArray[][7], int &currentRoom, bool haveGrail)
     if (roomArray[room][ZOMBIE_INDEX] == 1)
         return 1;
 }
-
+//takes in just the roomArray
+//prints out the connected rooms
 void showConnectedRooms(int roomArray[][7])
 {
     int room = 0;
@@ -323,7 +338,8 @@ void showConnectedRooms(int roomArray[][7])
             cout << roomArray[room][i] << " ";
     cout << endl;
 }
-
+//takes in roomArray and an arbitrary room
+//returns a bool of whether the room is connected to another room
 bool isConnected(int roomArray[][7], int x)
 {
     int room = 0;
@@ -336,3 +352,6 @@ bool isConnected(int roomArray[][7], int x)
     }
     return false;
 }
+
+//end of Part I and Part II
+//Part III to come shortly
