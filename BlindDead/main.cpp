@@ -3,8 +3,10 @@
    CSI project 2 and 3 - Blind Dead
    Author.  Matthew Krispinsky
    Version. 1.01 11.14.2016.
-   Purpose: This code implements the start of the game Blind Dead. This is the first half,
-   project 2. The final steps of the game, the running of the game, will come later in part 3.
+   Purpose: This code implements the start of the game Blind Dead. This is the entire project, that
+   is both project 2 and 3. There are some slight errors throughout the entire project. Realistically,
+   they would not exist. Unfortunately, things such as showing the correct connected rooms and also moving into
+   said connected rooms. Everything compiles and every other function minus these two/three work as expected.
 */
 
 #include<iostream>
@@ -14,6 +16,7 @@
 #include<cctype>
 #include<string>
 #include<limits>
+#include <cmath>
 
 using std::cout;
 using std::cin;
@@ -86,6 +89,22 @@ void showConnectedRooms(int roomArray[][7]);
 // tests to see if a room is connected to the current one
 bool isConnected(int roomArray[][7], int);
 //PART 3 prototypes
+
+void moveRoom(int roomArray[][7], int gameArray[], int, bool &);
+
+void shootRoom(int roomArray[][7], int gameArray[], int);
+
+void moveZombie(int roomArray[][7], int gameArray[]);
+
+bool validateSelection(string);
+
+void doSelection(string select, int roomArray[][7], int gameArray[], bool &haveGrail, int &currentRoom);
+
+void waitForMove(int roomArray[][7], int gameArray[]);
+
+void checkroom(int gameArray[],int roomArray[][7], bool &haveGrail, int &currentRoom, int x);
+
+void running(int gameArray[], int roomArray[][7], bool &haveGrail, int &currentRoom);
 
 int main()
 {
@@ -160,9 +179,12 @@ void printMemory(int gameArray[],int roomArray[][7])
         for (int j = 0; j < 7; j++)
         {
             cout << "[    ";
-            if(roomArray[i][j] < 10)
+            if(roomArray[i][j] < 9)
                 cout << " ";
-            cout << roomArray[i][j] << "]";
+            if(j < 4)
+                cout << roomArray[i][j] + 1 << "]";
+            else
+                cout << roomArray[i][j] << "]";
         }
         cout << endl;
     }
@@ -227,6 +249,7 @@ void readMaze(int roomArray[][7], int gameArray[5], ifstream &iFile)
         for(int j = 0; j < 4; j++)
         {
             iFile >> roomArray[i][j];
+            roomArray[i][j]--;
         }
         string boop; //arbitrary name
         getline(iFile, boop);
@@ -276,7 +299,7 @@ void setup(int &currentRoom, int &zombieRoom, int &numBullets, int &numRooms, bo
 
     gameArray[CURRENT_ROOM_INDEX] = currentRoom;
     gameArray[NUM_BULLETS_INDEX] = numBullets;
-
+    running(gameArray, roomArray, haveGrail, currentRoom);
 }
 //takes in roomArray and an arbitrary room
 //returns a bool of whether the zombie is in that room
@@ -318,6 +341,10 @@ int winOrLose(int roomArray[][7], int &currentRoom, bool haveGrail)
 {
     currentRoom = -1;
     int room = 0;
+
+    while(roomArray[room][PLAYER_INDEX] != 1)
+        room++;
+
     while(roomArray[room][PLAYER_INDEX] != 1)
         room++;
     if (room == 0 && haveGrail)
@@ -333,9 +360,11 @@ void showConnectedRooms(int roomArray[][7])
     while(roomArray[room][PLAYER_INDEX] != 1)
         room++;
     cout << "Connected rooms: ";
-    for(int i = 0; i < 4; i++)
-        if (roomArray[room][i] > 0)
-            cout << roomArray[room][i] << " ";
+    for(int i = 0; i < MAX_ROOMS; i++)
+    {
+        if(isConnected(roomArray, i))
+            cout << i + 1 << " ";
+    }
     cout << endl;
 }
 //takes in roomArray and an arbitrary room
@@ -355,3 +384,154 @@ bool isConnected(int roomArray[][7], int x)
 
 //end of Part I and Part II
 //Part III to come shortly
+
+//takes in all of our variables being kept tracked of
+//is used to move into adjacent rooms that are allowed
+void moveRoom(int gameArray [], int roomArray[][7], int x, bool &haveGrail, int &currentRoom)
+{
+    int room = 0;
+    while(roomArray[room][PLAYER_INDEX] != 1)
+        room++;
+    if(isConnected(roomArray, x))
+    {
+        roomArray[room][PLAYER_INDEX] = 0;
+        roomArray[x][PLAYER_INDEX] = 1;
+        gameArray[CURRENT_ROOM_INDEX] = x;
+    }
+    else
+        cout << "You've walked into a wall, cannot walk here\n";
+    if (gameArray[GRAIL_INDEX] = x)
+        haveGrail = true;
+    if (haveGrail)
+    {
+        for(int i = 0; i < MAX_ROOMS; i++)
+        {
+            roomArray[i][GRAIL_INDEX] = 0;
+        }
+        roomArray[x][GRAIL_INDEX] = 1;
+    }
+    if (winOrLose(roomArray, currentRoom, haveGrail) == 0)
+    {
+        cout << "You have won the game!\n";
+        exit(0);
+    }
+}
+
+//takes in roomArray, game array and an arbitrary room
+//shoots into an allowed adjacent room and decrements num bullets
+void shootRoom(int roomArray[][7], int gameArray[], int x)
+{
+    int room = 0;
+    while(roomArray[room][PLAYER_INDEX] != 1)
+        room++;
+    if(isConnected(roomArray, x))
+    {
+        gameArray[NUM_BULLETS_INDEX]--;
+        if (checkZombie(roomArray, x))
+        {
+            roomArray[gameArray[ZOMBIE_INDEX]][ZOMBIE_ROOM_INDEX] = 0;
+            gameArray[ZOMBIE_INDEX] = -1;
+        }
+        else
+            cout << "Darn, you missed!\n";
+    }
+    else
+        cout << "Cannot shoot into this room\n";
+}
+
+//takes in roomArray and gameArray
+//randomly moves zombie into an allowed adjacent room
+void moveZombie(int roomArray[][7], int gameArray[])
+{
+    if(gameArray[ZOMBIE_INDEX] != -1)
+    {
+        int move = rand() % 4;
+        if (roomArray[gameArray[ZOMBIE_INDEX]][move] != -1)
+        {
+            roomArray[roomArray[gameArray[ZOMBIE_INDEX]][move]][ZOMBIE_ROOM_INDEX] = 1;
+            roomArray[gameArray[ZOMBIE_INDEX]][ZOMBIE_ROOM_INDEX] = 0;
+        }
+    }
+}
+
+//takes in a string select
+//returns a bool of whether the selection is valid
+bool validateSelection(string select)
+{
+    return ('Q' == select[0] || 'D' == select[0] ||'S' == select[0] ||'M' == select[0]);
+}
+
+//takes in most of our current variables
+//uses a switch statement fir the input selection
+void doSelection(string select, int roomArray[][7], int gameArray[], bool &haveGrail, int &currentRoom)
+{
+    switch(select[0])
+    {
+    case 'Q':
+        exit(0);
+        break;
+    case 'D':
+        printMemory(gameArray, roomArray);
+        break;
+    case 'S':
+    {
+        string str = select.substr(1, 3);
+        int digit = atoi((str.c_str()));
+        shootRoom(roomArray, gameArray, digit - 1);
+        break;
+    }
+    case 'M':
+        {
+        string str = select.substr(1, 3);
+        int digit = atoi((str.c_str()));
+        moveRoom(gameArray, roomArray, digit - 1, haveGrail, currentRoom);
+        break;
+        }
+    }
+}
+
+//takes in roomArray, gameArray, haveGrail, and currentRoom
+//prints menu, accepts a selection and calls doSelection
+void waitForMove(int roomArray[][7], int gameArray[], bool &haveGrail, int &currentRoom)
+{
+    cout << "Q - quit the game\nD - print memory\nS #- shoot into the indicated room\nM #- move into the indicated room\n";
+    string boop;
+    do
+    {
+        getline(cin, boop);
+    }
+    while(!validateSelection(boop));
+    doSelection(boop, roomArray, gameArray, haveGrail, currentRoom);
+}
+
+//takes in roomArray, gameArray, haveGrail, and currentRoom
+//prints various conditions
+void checkroom(int gameArray[], int roomArray[][7], bool &haveGrail, int &currentRoom)
+{
+    cout << "Current Room: " << gameArray[PLAYER_INDEX] + 1 << endl;
+    cout << "Number of Bullets: " << gameArray[NUM_BULLETS_INDEX] << endl;
+    if(haveGrail)
+        cout << "You have the Holy Grail!" << endl;
+    if(gameArray[ZOMBIE_INDEX] == gameArray[CURRENT_ROOM_INDEX])
+        {
+        if(winOrLose(roomArray, currentRoom, haveGrail) == 1)
+            {
+                cout << "You have lost!\n";
+                exit(0);
+            }
+        }
+    if(checkNearZombie(roomArray, gameArray[PLAYER_INDEX]))
+        cout << "You hear the Zombie";
+    if(checkNearGrail(roomArray, gameArray[PLAYER_INDEX]))
+        cout << "You sense the Grail\n";
+    showConnectedRooms(roomArray);
+    waitForMove(roomArray, gameArray, haveGrail, currentRoom);
+}
+
+//takes in roomArray, gameArray, haveGrail, and currentRoom
+//continuously runs checkroom while current room doesnt equal -1
+void running(int gameArray[], int roomArray[][7], bool &haveGrail, int &currentRoom)
+{
+    while(currentRoom != -1)
+        checkroom(gameArray, roomArray, haveGrail, currentRoom);
+}

@@ -8,3 +8,13 @@
 	<string>
 	<limits>
 
+1481331121 source:c:\users\jakep\documents\github\krispinsky\blinddead\main.cpp
+	<iostream>
+	<fstream>
+	<cstdlib>
+	<ctime>
+	<cctype>
+	<string>
+	<limits>
+	<cmath>
+
